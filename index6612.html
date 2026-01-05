@@ -1,0 +1,2395 @@
+<!doctype html>
+<html lang="en" class="dark">
+  <head>
+    <meta charset="UTF-8" />
+    <meta
+      name="viewport"
+      content="width=device-width, initial-scale=1.0, viewport-fit=cover"
+    />
+    <meta name="theme-color" content="#020617" />
+    <title>DONGARI SRINIVASA RAO • AI & Data</title>
+
+    <!-- Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+
+    <!-- React + Framer Motion + Lucide Icons (kept for future use if needed) -->
+    <script crossorigin src="https://unpkg.com/react@18/umd/react.development.js"></script>
+    <script crossorigin src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/framer-motion@11/dist/framer-motion.js"></script>
+    <script src="https://unpkg.com/lucide@latest/dist/umd/lucide.js"></script>
+
+    <!-- Three.js (for lightweight 3D network background) -->
+    <script src="https://unpkg.com/three@0.160.0/build/three.min.js"></script>
+
+    <style>
+      :root {
+        --bg: #020617;
+        --bg-soft: #030816;
+        --bg-card: #020617;
+        --bg-chip: #0b1220;
+        --border-subtle: rgba(148, 163, 184, 0.35);
+        --border-strong: rgba(148, 163, 184, 0.55);
+        --text-main: #e5e7eb;
+        --text-muted: #9ca3af;
+        --accent: #6366f1;
+        --accent-2: #a855f7;
+        --accent-soft: rgba(99, 102, 241, 0.07);
+        --radius-lg: 22px;
+        --radius-xl: 30px;
+        --shadow-soft: 0 24px 60px rgba(15, 23, 42, 0.9);
+        --grid-dot: radial-gradient(
+          circle,
+          rgba(148, 163, 184, 0.25) 1px,
+          transparent 1px
+        );
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+
+      html,
+      body {
+        margin: 0;
+        padding: 0;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: radial-gradient(circle at top, #0b1120 0, #020617 55%);
+        color: var(--text-main);
+        scroll-behavior: smooth;
+      }
+
+      body {
+        min-height: 100vh;
+      }
+
+      .page {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 0 18px 100px;
+        position: relative;
+        overflow: visible;
+        z-index: 1;
+      }
+
+      /* 3D NETWORK BACKGROUND LAYER */
+      /* Canvas sits behind everything and fills viewport */
+      #bg-network-canvas {
+        position: fixed;
+        inset: 0;
+        z-index: -2;
+        background: radial-gradient(circle at top, #020617 0, #020617 60%);
+      }
+
+      /* Soft grid overlay (above canvas) */
+      .bg-net {
+        position: fixed;
+        inset: 0;
+        z-index: -1;
+        background-image: radial-gradient(
+          circle at 2px 2px,
+          rgba(148, 163, 184, 0.18) 1px,
+          transparent 0
+        );
+        background-size: 120px 120px;
+        opacity: 0.35;
+        pointer-events: none;
+      }
+
+      /* Slight dark overlay for lower sections so hero shows network more clearly */
+      .sections-overlay {
+        position: relative;
+        z-index: 0;
+      }
+
+      .sections-overlay::before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        top: 420px; /* below hero area so hero shows bright network */
+        background: linear-gradient(
+          to bottom,
+          rgba(2, 6, 23, 0) 0%,
+          rgba(2, 6, 23, 0.7) 30%,
+          rgba(2, 6, 23, 0.9) 100%
+        );
+        pointer-events: none;
+        z-index: -1;
+      }
+
+      /* NAV */
+      .nav {
+        position: sticky;
+        top: 0;
+        z-index: 40;
+        backdrop-filter: blur(26px);
+        background: linear-gradient(
+          to bottom,
+          rgba(15, 23, 42, 0.95),
+          rgba(15, 23, 42, 0.7)
+        );
+        border-bottom: 1px solid rgba(148, 163, 184, 0.3);
+      }
+
+      .nav-inner {
+        max-width: 1180px;
+        margin: 0 auto;
+        padding: 10px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+
+      .logo-pill {
+        display: inline-flex;
+        align-items: center;
+        gap: 8px;
+        padding: 8px 14px;
+        border-radius: 999px;
+        background: radial-gradient(circle at top left, #4f46e5, #020617);
+        color: #e5e7eb;
+        font-weight: 600;
+        font-size: 14px;
+        letter-spacing: -0.03em;
+        box-shadow: 0 10px 28px rgba(79, 70, 229, 0.6);
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+
+      .logo-pill:hover {
+        transform: translateY(-1px) scale(1.02);
+        box-shadow: 0 14px 32px rgba(79, 70, 229, 0.8);
+      }
+
+      .logo-pill span.dot {
+        width: 8px;
+        height: 8px;
+        border-radius: 999px;
+        background: #22c55e;
+      }
+
+      .nav-links {
+        display: none;
+        gap: 18px;
+        font-size: 13px;
+      }
+
+      .nav-links a {
+        color: var(--text-muted);
+        text-decoration: none;
+        position: relative;
+        padding-bottom: 2px;
+        transition: color 0.2s ease;
+      }
+
+      .nav-links a::after {
+        content: "";
+        position: absolute;
+        left: 0;
+        bottom: 0;
+        width: 0;
+        height: 2px;
+        border-radius: 999px;
+        background: linear-gradient(90deg, var(--accent), var(--accent-2));
+        transition: width 0.2s ease;
+      }
+
+      .nav-links a:hover {
+        color: var(--text-main);
+      }
+
+      .nav-links a:hover::after {
+        width: 100%;
+      }
+
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+      }
+
+      .circle-btn {
+        width: 34px;
+        height: 34px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        background: rgba(15, 23, 42, 0.9);
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        color: var(--text-main);
+        cursor: pointer;
+        font-size: 16px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .circle-btn:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 10px 24px rgba(15, 23, 42, 0.8);
+        background: rgba(15, 23, 42, 1);
+      }
+
+      .btn-ghost {
+        padding: 7px 14px;
+        border-radius: 999px;
+        border: 1px solid rgba(129, 140, 248, 0.9);
+        background: rgba(15, 23, 42, 0.9);
+        font-size: 12px;
+        color: var(--text-main);
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .btn-ghost:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 30px rgba(79, 70, 229, 0.6);
+        background: rgba(15, 23, 42, 1);
+      }
+
+      /* Dock */
+      .dock {
+        margin-top: 22px;
+        margin-bottom: 24px;
+        display: flex;
+        justify-content: center;
+      }
+      .dock-inner {
+        display: inline-flex;
+        padding: 8px 10px;
+        gap: 12px;
+        border-radius: 999px;
+        background: linear-gradient(
+          135deg,
+          rgba(248, 250, 252, 0.16),
+          rgba(148, 163, 184, 0.05)
+        );
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        box-shadow: 0 18px 50px rgba(15, 23, 42, 0.9);
+        backdrop-filter: blur(30px);
+      }
+
+      .dock-btn {
+        width: 38px;
+        height: 38px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.98);
+        border: 1px solid rgba(148, 163, 184, 0.4);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 17px;
+        cursor: pointer;
+        color: #e5e7eb;
+        transition: transform 0.2s ease, box-shadow 0.2s ease,
+          background 0.2s ease, border-color 0.2s ease;
+      }
+
+      .dock-btn:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 12px 30px rgba(15, 23, 42, 0.9);
+      }
+
+      .dock-btn.active {
+        background: radial-gradient(circle at top left, #4f46e5, #1e293b);
+        border-color: rgba(129, 140, 248, 0.95);
+        box-shadow: 0 14px 40px rgba(79, 70, 229, 0.9);
+      }
+
+      /* HERO */
+      .hero {
+        display: flex;
+        flex-direction: column;
+        gap: 26px;
+        padding-bottom: 80px;
+        padding-top: 40px;
+        min-height: 520px; /* more vertical space so 3D network is visible */
+        position: relative;
+        z-index: 1;
+      }
+
+      .hero-left {
+        flex: 1.5;
+      }
+
+      .hero-right {
+        flex: 1.2;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 14px;
+      }
+
+      .eyebrow {
+        font-size: 15px;
+        font-weight: 500;
+        color: #a5b4fc;
+        margin-bottom: 6px;
+      }
+
+      .hero-name {
+        font-size: 36px;
+        font-weight: 800;
+        letter-spacing: -0.05em;
+        margin: 0 0 4px;
+      }
+
+      .hero-title {
+        font-size: 32px;
+        font-weight: 700;
+        letter-spacing: -0.06em;
+        margin: 0 0 16px;
+      }
+
+      .hero-title span {
+        color: var(--accent);
+      }
+
+      .hero-text {
+        font-size: 14px;
+        color: var(--text-muted);
+        max-width: 520px;
+        line-height: 1.7;
+      }
+
+      .hero-actions {
+        margin-top: 18px;
+        display: flex;
+        flex-wrap: wrap;
+        gap: 10px;
+      }
+
+      .btn-primary {
+        padding: 10px 22px;
+        border-radius: 999px;
+        border: 1px solid rgba(129, 140, 248, 0.95);
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: white;
+        text-decoration: none;
+        font-size: 14px;
+        box-shadow: 0 18px 40px rgba(88, 80, 236, 0.8);
+        transition: transform 0.2s ease, box-shadow 0.2s ease, filter 0.2s ease;
+      }
+
+      .btn-primary:hover {
+        transform: translateY(-1px) scale(1.02);
+        box-shadow: 0 22px 50px rgba(88, 80, 236, 0.95);
+        filter: brightness(1.05);
+      }
+
+      .btn-secondary {
+        padding: 10px 20px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.65);
+        background: rgba(15, 23, 42, 0.95);
+        font-size: 14px;
+        color: var(--text-main);
+        text-decoration: none;
+        transition: transform 0.2s ease, box-shadow 0.2s ease, background 0.2s ease;
+      }
+
+      .btn-secondary:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 16px 40px rgba(15, 23, 42, 0.9);
+        background: #020617;
+      }
+
+      .hero-socials {
+        margin-top: 16px;
+        display: flex;
+        gap: 10px;
+      }
+      .social {
+        width: 36px;
+        height: 36px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        color: #e5e7eb;
+        text-decoration: none;
+        font-size: 18px;
+        transition: transform 0.2s ease, box-shadow 0.2s ease;
+      }
+      .social.git {
+        background: #111827;
+      }
+      .social.li {
+        background: #2563eb;
+      }
+      .social.mail {
+        background: #f97316;
+      }
+      .social:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.9);
+      }
+
+      .hero-scroll {
+        margin-top: 26px;
+        font-size: 13px;
+        color: var(--text-muted);
+        display: flex;
+        flex-direction: column;
+        align-items: flex-start;
+        gap: 4px;
+      }
+      .hero-scroll span.icon {
+        font-size: 18px;
+        animation: bounce 1.6s infinite;
+      }
+
+      @keyframes bounce {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(4px);
+        }
+      }
+
+      .hero-avatar {
+        width: 340px;
+        height: 340px;
+        border-radius: 999px;
+        position: relative;
+        box-shadow: 0 32px 90px rgba(15, 23, 42, 0.95);
+        overflow: hidden;
+        background: radial-gradient(circle at top left, #4f46e5, #020617);
+      }
+      .hero-avatar img {
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+        border-radius: 999px;
+      }
+      .hero-avatar-ring {
+        position: absolute;
+        inset: 6px;
+        border-radius: 999px;
+        border: 2px dashed rgba(148, 163, 184, 0.7);
+        animation: rotateRing 18s linear infinite;
+      }
+
+      @keyframes rotateRing {
+        from {
+          transform: rotate(0deg);
+        }
+        to {
+          transform: rotate(360deg);
+        }
+      }
+
+      .hero-pills {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 6px;
+        margin-top: 8px;
+      }
+      .hero-pill {
+        font-size: 11px;
+        padding: 4px 9px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.92);
+        border: 1px solid rgba(148, 163, 184, 0.5);
+        color: var(--text-muted);
+        backdrop-filter: blur(12px);
+      }
+
+      /* Section headings */
+      .section {
+        padding: 40px 4px;
+        position: relative;
+        z-index: 1;
+      }
+      .section-header {
+        text-align: center;
+        margin-bottom: 26px;
+      }
+      .section-kicker {
+        font-size: 12px;
+        letter-spacing: 0.18em;
+        text-transform: uppercase;
+        color: rgba(148, 163, 184, 0.9);
+      }
+      .section-title {
+        font-size: 30px;
+        font-weight: 800;
+        letter-spacing: 0.06em;
+        text-transform: uppercase;
+        color: #c7d2fe;
+        margin-top: 4px;
+        position: relative;
+        display: inline-block;
+      }
+      .section-title::before,
+      .section-title::after {
+        content: "•";
+        margin: 0 10px;
+        color: rgba(129, 140, 248, 0.9);
+      }
+
+      /* Skills */
+      .skills-row-top {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: center;
+        gap: 30px;
+        margin-bottom: 26px;
+      }
+      .skill-icon {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 8px;
+        font-size: 13px;
+        color: var(--text-muted);
+        transition: transform 0.2s ease, filter 0.2s ease;
+      }
+      .skill-icon-circle {
+        width: 52px;
+        height: 52px;
+        border-radius: 999px;
+        background: radial-gradient(circle at top left, #4f46e5, #020617);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 24px;
+        box-shadow: 0 14px 30px rgba(15, 23, 42, 0.9);
+      }
+
+      .skill-icon:hover {
+        transform: translateY(-2px);
+        filter: brightness(1.08);
+      }
+
+      .skills-grids {
+        display: grid;
+        gap: 18px;
+        margin-top: 10px;
+      }
+      .skills-card {
+        border-radius: var(--radius-xl);
+        background: radial-gradient(
+          circle at top left,
+          rgba(99, 102, 241, 0.16),
+          #020617
+        );
+        border: 1px solid var(--border-subtle);
+        padding: 18px 18px 14px;
+        box-shadow: var(--shadow-soft);
+        backdrop-filter: blur(16px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .skills-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.95);
+        border-color: rgba(129, 140, 248, 0.8);
+      }
+      .skills-card-title {
+        font-size: 17px;
+        font-weight: 600;
+        margin-bottom: 10px;
+      }
+      .skills-chip-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .badge {
+        font-size: 12px;
+        padding: 7px 11px;
+        border-radius: 999px;
+        background: var(--bg-chip);
+        border: 1px solid rgba(148, 163, 184, 0.55);
+      }
+      .badge-blue {
+        background: rgba(37, 99, 235, 0.12);
+        border-color: rgba(59, 130, 246, 0.7);
+      }
+      .badge-green {
+        background: rgba(22, 163, 74, 0.12);
+        border-color: rgba(34, 197, 94, 0.7);
+      }
+      .badge-orange {
+        background: rgba(249, 115, 22, 0.12);
+        border-color: rgba(249, 115, 22, 0.7);
+      }
+
+      /* Projects */
+      .projects-filter {
+        display: flex;
+        justify-content: center;
+        gap: 10px;
+        margin-bottom: 22px;
+        flex-wrap: wrap;
+      }
+      .filter-pill {
+        padding: 7px 16px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.6);
+        background: rgba(15, 23, 42, 0.9);
+        font-size: 13px;
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: background 0.2s ease, color 0.2s ease, transform 0.2s ease,
+          box-shadow 0.2s ease;
+      }
+      .filter-pill:hover {
+        transform: translateY(-1px);
+        box-shadow: 0 12px 28px rgba(15, 23, 42, 0.9);
+      }
+      .filter-pill.active {
+        background: #2563eb;
+        border-color: #2563eb;
+        color: white;
+      }
+      .projects-grid {
+        display: grid;
+        gap: 18px;
+      }
+      .project-card {
+        border-radius: var(--radius-xl);
+        background: radial-gradient(
+          circle at 10% 0,
+          rgba(248, 250, 252, 0.18),
+          #020617
+        );
+        border: 1px solid rgba(148, 163, 184, 0.55);
+        box-shadow: var(--shadow-soft);
+        overflow: hidden;
+        position: relative;
+        backdrop-filter: blur(16px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .project-card:hover {
+        transform: translateY(-3px);
+        box-shadow: 0 24px 60px rgba(15, 23, 42, 0.95);
+        border-color: rgba(129, 140, 248, 0.9);
+      }
+      .project-tag-top {
+        position: absolute;
+        top: 14px;
+        right: 14px;
+        font-size: 11px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.7);
+      }
+      .project-body {
+        padding: 18px 18px 13px;
+      }
+      .project-title-main {
+        font-size: 18px;
+        font-weight: 700;
+        margin-bottom: 6px;
+      }
+      .project-sub {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 10px;
+      }
+      .project-bottom {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        gap: 10px;
+        margin-top: 8px;
+      }
+      .project-live {
+        font-size: 12px;
+        padding: 5px 10px;
+        border-radius: 999px;
+        background: rgba(22, 163, 74, 0.12);
+        border: 1px solid rgba(34, 197, 94, 0.7);
+        color: #bbf7d0;
+      }
+      .project-tech-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+      }
+      .project-tech {
+        font-size: 11px;
+        padding: 4px 8px;
+        border-radius: 999px;
+        background: rgba(15, 23, 42, 0.95);
+        border: 1px solid rgba(148, 163, 184, 0.55);
+      }
+
+      /* Timeline */
+      .timeline {
+        position: relative;
+        padding-left: 24px;
+        margin-top: 10px;
+      }
+      .timeline-line {
+        position: absolute;
+        left: 10px;
+        top: 0;
+        bottom: 0;
+        width: 2px;
+        background: linear-gradient(to bottom, #4f46e5, transparent);
+      }
+      .timeline-item {
+        position: relative;
+        margin-bottom: 16px;
+      }
+      .timeline-dot {
+        position: absolute;
+        top: 16px;
+        left: -5px;
+        width: 16px;
+        height: 16px;
+        border-radius: 999px;
+        background: #4f46e5;
+        border: 2px solid #020617;
+        box-shadow: 0 0 0 4px rgba(79, 70, 229, 0.5);
+      }
+      .timeline-card {
+        margin-left: 16px;
+        border-radius: var(--radius-xl);
+        background: radial-gradient(
+          circle at top left,
+          rgba(79, 70, 229, 0.16),
+          #020617
+        );
+        border: 1px solid var(--border-subtle);
+        padding: 16px 16px 12px;
+        box-shadow: var(--shadow-soft);
+        backdrop-filter: blur(16px);
+      }
+      .timeline-title {
+        font-size: 16px;
+        font-weight: 600;
+      }
+      .timeline-sub {
+        font-size: 13px;
+        color: #bfdbfe;
+        margin-top: 2px;
+      }
+      .timeline-period {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-top: 4px;
+      }
+      .timeline-text {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-top: 8px;
+      }
+
+      /* Slider cards (certs & internships) */
+      .slider-row {
+        display: grid;
+        gap: 18px;
+      }
+      .slider-card {
+        border-radius: var(--radius-xl);
+        border: 1px solid var(--border-subtle);
+        background: radial-gradient(
+          circle at top left,
+          rgba(248, 250, 252, 0.12),
+          #020617
+        );
+        padding: 14px 14px 12px;
+        box-shadow: var(--shadow-soft);
+        backdrop-filter: blur(16px);
+        transition: transform 0.2s ease, box-shadow 0.2s ease,
+          border-color 0.2s ease;
+      }
+      .slider-card:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 22px 52px rgba(15, 23, 42, 0.95);
+        border-color: rgba(129, 140, 248, 0.85);
+      }
+      .slider-image {
+        height: 130px;
+        border-radius: 18px;
+        background-image: var(--grid-dot);
+        background-size: 18px 18px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 28px;
+        color: #e5e7eb;
+        margin-bottom: 10px;
+      }
+      .slider-title {
+        font-size: 15px;
+        font-weight: 600;
+        margin-bottom: 4px;
+      }
+      .slider-meta {
+        font-size: 13px;
+        color: var(--text-muted);
+      }
+
+      /* Contact */
+      .contact-grid {
+        display: grid;
+        gap: 18px;
+        margin-top: 10px;
+      }
+      .contact-card {
+        border-radius: var(--radius-xl);
+        background: radial-gradient(
+          circle at top left,
+          rgba(79, 70, 229, 0.18),
+          #020617
+        );
+        border: 1px solid var(--border-subtle);
+        padding: 16px;
+        box-shadow: var(--shadow-soft);
+        backdrop-filter: blur(18px);
+      }
+      .contact-label {
+        font-size: 13px;
+        color: var(--text-muted);
+        margin-bottom: 4px;
+      }
+      .contact-value {
+        font-size: 14px;
+      }
+      .contact-link {
+        color: #a5b4fc;
+        text-decoration: none;
+      }
+      .contact-link:hover {
+        text-decoration: underline;
+      }
+      .contact-form-grid {
+        display: grid;
+        gap: 10px;
+      }
+      .field-label {
+        font-size: 12px;
+        color: var(--text-muted);
+        margin-bottom: 2px;
+      }
+      .field-input,
+      .field-textarea {
+        width: 100%;
+        border-radius: 16px;
+        border: 1px solid rgba(148, 163, 184, 0.55);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-main);
+        font-size: 13px;
+        padding: 9px 11px;
+      }
+      .field-textarea {
+        min-height: 80px;
+        resize: vertical;
+      }
+
+      .footer {
+        border-top: 1px solid rgba(51, 65, 85, 0.8);
+        margin-top: 26px;
+        padding-top: 12px;
+        font-size: 11px;
+        color: var(--text-muted);
+        text-align: center;
+      }
+
+      /* CHATBOT STYLES (GLASSMORPHIC, FLOATING) */
+      .chatbot-container {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        z-index: 1000;
+        width: 360px;
+        max-width: 90vw;
+        height: 500px;
+        background: radial-gradient(
+          circle at top left,
+          rgba(37, 99, 235, 0.18),
+          rgba(15, 23, 42, 0.9)
+        );
+        border-radius: var(--radius-xl);
+        border: 1px solid rgba(148, 163, 184, 0.45);
+        box-shadow: 0 24px 70px rgba(15, 23, 42, 0.95);
+        backdrop-filter: blur(30px);
+        display: flex;
+        flex-direction: column;
+        transform: translateX(400px) translateY(10px) scale(0.96);
+        opacity: 0;
+        pointer-events: none;
+        transition: transform 0.28s cubic-bezier(0.25, 0.46, 0.45, 0.94),
+          opacity 0.24s ease;
+      }
+
+      .chatbot-container.open {
+        transform: translateX(0) translateY(0) scale(1);
+        opacity: 1;
+        pointer-events: auto;
+      }
+
+      .chatbot-toggle {
+        position: fixed;
+        bottom: 20px;
+        right: 20px;
+        width: 60px;
+        height: 60px;
+        border-radius: 999px;
+        background: radial-gradient(circle at 10% 0, #22d3ee, #6366f1);
+        border: none;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        z-index: 1001;
+        box-shadow: 0 20px 40px rgba(56, 189, 248, 0.4);
+        transition: all 0.2s ease;
+        color: white;
+        font-size: 26px;
+      }
+
+      .chatbot-toggle:hover {
+        transform: translateY(-2px) scale(1.05);
+        box-shadow: 0 26px 60px rgba(56, 189, 248, 0.55);
+      }
+
+      .chatbot-header {
+        padding: 18px;
+        border-bottom: 1px solid var(--border-subtle);
+        display: flex;
+        align-items: center;
+        gap: 12px;
+      }
+
+      .chatbot-avatar {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        background: conic-gradient(
+          from 0deg,
+          #22d3ee,
+          #6366f1,
+          #a855f7,
+          #22d3ee
+        );
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 18px;
+        box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.95);
+      }
+
+      .chatbot-title {
+        font-size: 16px;
+        font-weight: 600;
+        flex: 1;
+      }
+
+      .chatbot-subtitle {
+        font-size: 11px;
+        color: var(--text-muted);
+        margin-top: 2px;
+      }
+
+      .chatbot-close {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(15, 23, 42, 0.5);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: var(--text-muted);
+        transition: background 0.2s ease, transform 0.2s ease;
+      }
+
+      .chatbot-close:hover {
+        background: rgba(15, 23, 42, 0.9);
+        transform: scale(1.02);
+      }
+
+      .chatbot-messages {
+        flex: 1;
+        padding: 16px 18px;
+        overflow-y: auto;
+        display: flex;
+        flex-direction: column;
+        gap: 12px;
+      }
+
+      .message {
+        display: flex;
+        gap: 12px;
+        max-width: 85%;
+        animation: fadeIn 0.2s ease;
+      }
+
+      .message.user {
+        align-self: flex-end;
+        flex-direction: row-reverse;
+      }
+
+      .message-avatar {
+        width: 32px;
+        height: 32px;
+        border-radius: 999px;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        font-size: 14px;
+        flex-shrink: 0;
+      }
+
+      .message.user .message-avatar {
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: white;
+      }
+
+      .message.assistant .message-avatar {
+        background: rgba(99, 102, 241, 0.2);
+        color: var(--accent);
+      }
+
+      .message-content {
+        padding: 10px 14px;
+        border-radius: 18px;
+        max-width: 100%;
+        line-height: 1.5;
+        font-size: 13px;
+      }
+
+      .message.user .message-content {
+        background: linear-gradient(135deg, #6366f1, #a855f7);
+        color: white;
+      }
+
+      .message.assistant .message-content {
+        background: rgba(15, 23, 42, 0.8);
+        border: 1px solid var(--border-subtle);
+        color: var(--text-main);
+      }
+
+      .typing-wrapper {
+        align-self: flex-start;
+      }
+
+      .typing-indicator-inner {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        padding: 4px 2px;
+        opacity: 0.75;
+      }
+
+      .typing-dots {
+        display: flex;
+        gap: 4px;
+      }
+
+      .typing-dots span {
+        width: 7px;
+        height: 7px;
+        border-radius: 50%;
+        background: var(--accent);
+        animation: typing 1.4s infinite ease-in-out;
+      }
+
+      .typing-dots span:nth-child(2) {
+        animation-delay: 0.2s;
+      }
+      .typing-dots span:nth-child(3) {
+        animation-delay: 0.4s;
+      }
+
+      @keyframes typing {
+        0%,
+        60%,
+        100% {
+          transform: scale(1);
+          opacity: 0.5;
+        }
+        30% {
+          transform: scale(1.2);
+          opacity: 1;
+        }
+      }
+
+      .chatbot-quick-actions {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        padding: 0 18px 10px 18px;
+      }
+
+      .chip-action {
+        font-size: 11px;
+        padding: 6px 10px;
+        border-radius: 999px;
+        border: 1px solid rgba(148, 163, 184, 0.55);
+        background: rgba(15, 23, 42, 0.8);
+        color: var(--text-muted);
+        cursor: pointer;
+        transition: background 0.2s ease, transform 0.2s ease,
+          border-color 0.2s ease;
+      }
+
+      .chip-action:hover {
+        background: rgba(15, 23, 42, 1);
+        transform: translateY(-1px);
+        border-color: rgba(129, 140, 248, 0.9);
+      }
+
+      .chatbot-input {
+        padding: 10px 16px 14px;
+        border-top: 1px solid var(--border-subtle);
+        display: flex;
+        gap: 10px;
+        align-items: flex-end;
+        background: radial-gradient(
+          circle at top,
+          rgba(15, 23, 42, 0.9),
+          #020617
+        );
+      }
+
+      .chatbot-input input {
+        flex: 1;
+        padding: 10px 14px;
+        border-radius: 24px;
+        border: 1px solid var(--border-subtle);
+        background: rgba(15, 23, 42, 0.9);
+        color: var(--text-main);
+        font-size: 13px;
+        outline: none;
+      }
+
+      .chatbot-input input::placeholder {
+        color: var(--text-muted);
+      }
+
+      .chatbot-send {
+        width: 40px;
+        height: 40px;
+        border-radius: 999px;
+        border: none;
+        background: radial-gradient(circle at 10% 0, #22d3ee, #6366f1);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        cursor: pointer;
+        color: white;
+        flex-shrink: 0;
+        transition: transform 0.15s ease, box-shadow 0.15s ease;
+      }
+
+      .chatbot-send:hover {
+        transform: translateY(-1px) scale(1.03);
+        box-shadow: 0 14px 32px rgba(56, 189, 248, 0.6);
+      }
+
+      @keyframes fadeIn {
+        from {
+          opacity: 0;
+          transform: translateY(6px);
+        }
+        to {
+          opacity: 1;
+          transform: translateY(0);
+        }
+      }
+
+      @media (max-width: 720px) {
+        .chatbot-container {
+          width: 95vw;
+          height: 70vh;
+          bottom: 10px;
+          right: 10px;
+        }
+        .chatbot-toggle {
+          bottom: 10px;
+          right: 10px;
+        }
+      }
+
+      /* Responsive layout tweaks */
+      @media (min-width: 720px) {
+        .nav-links {
+          display: flex;
+        }
+        .hero {
+          flex-direction: row;
+          align-items: center;
+        }
+        .skills-grids {
+          grid-template-columns: repeat(2, minmax(0, 1fr));
+        }
+        .projects-grid {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .slider-row {
+          grid-template-columns: repeat(3, minmax(0, 1fr));
+        }
+        .contact-grid {
+          grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.4fr);
+        }
+        .dock {
+          margin-bottom: 70px;
+        }
+        .page {
+          padding-bottom: 120px;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <!-- 3D network background canvas -->
+    <canvas id="bg-network-canvas"></canvas>
+
+    <!-- Soft grid overlay -->
+    <div class="bg-net"></div>
+
+    <div class="page" id="root">
+      <!-- NAV -->
+      <header class="nav">
+        <div class="nav-inner">
+          <a href="#home" class="logo-pill">
+            <span>SR</span>
+            <span style="font-size: 11px; opacity: 0.85">AI & Data</span>
+            <span class="dot"></span>
+          </a>
+          <nav class="nav-links">
+            <a href="#skills">Skills</a>
+            <a href="#projects">Projects</a>
+            <a href="#education">Education</a>
+            <a href="#certifications">Certifications</a>
+            <a href="#internships">Internships</a>
+            <a href="#contact">Contact</a>
+          </nav>
+          <div class="nav-actions">
+            <button id="theme-toggle" class="circle-btn" aria-label="Theme">
+              🌙
+            </button>
+            <!-- Download Resume button in nav -->
+            <a
+              href="C:\Users\teste\Downloads\srinivas_portpolio\Srinivas-AIML-Resume.pdf"
+              class="btn-ghost"
+              download
+              >Download</a
+            >
+          </div>
+        </div>
+      </header>
+
+      <!-- DOCK -->
+      <div class="dock">
+        <div class="dock-inner">
+          <button class="dock-btn active" onclick="scrollToId('home')">
+            🏠
+          </button>
+          <button class="dock-btn" onclick="scrollToId('skills')">🧠</button>
+          <button class="dock-btn" onclick="scrollToId('education')">
+            🎓
+          </button>
+          <button class="dock-btn" onclick="scrollToId('projects')">⭐</button>
+          <button class="dock-btn" onclick="scrollToId('certifications')">
+            📜
+          </button>
+          <button class="dock-btn" onclick="scrollToId('internships')">
+            🚀
+          </button>
+          <button class="dock-btn" onclick="scrollToId('contact')">✉️</button>
+        </div>
+      </div>
+
+      <div class="sections-overlay">
+        <!-- HERO -->
+        <main id="home" class="hero">
+          <div class="hero-left">
+            <div class="eyebrow">Hello, I'm</div>
+            <h1 class="hero-name">DONGARI SRINIVASA RAO</h1>
+            <h2 class="hero-title">
+              <span>AI & ML</span> Engineer • Data Analyst
+            </h2>
+            <p class="hero-text">
+              B.Tech in Artificial Intelligence and Machine Learning with
+              hands‑on experience in Python, SQL, and Power BI, building ML
+              models and analytics solutions for real business problems.
+            </p>
+            <p class="hero-text">
+              Experienced with end‑to‑end pipelines: data cleaning, modeling,
+              and dashboards using Streamlit, Power BI, MySQL, and MongoDB,
+              backed by multiple internships and published work.
+            </p>
+            <div class="hero-actions">
+              <a href="#projects" class="btn-primary">View Featured Projects</a>
+              <a href="#contact" class="btn-secondary">Get in touch</a>
+              <!-- Download Resume button in hero -->
+              <a
+                href="C:\Users\teste\Downloads\srinivas_portpolio\Srinivas-AIML-Resume.pdf"
+                class="btn-secondary"
+                download
+                >Download Resume</a
+              >
+            </div>
+            <div class="hero-socials">
+              <a
+                href="https://github.com/Srinivas6620"
+                target="_blank"
+                class="social git"
+                title="GitHub"
+                >G</a
+              >
+              <a
+                href="https://in.linkedin.com/in/dongari-srinivasa-rao-527284280"
+                target="_blank"
+                class="social li"
+                title="LinkedIn"
+                >in</a
+              >
+              <a
+                href="mailto:srinivasaraodongari630@gmail.com"
+                class="social mail"
+                title="Email"
+                >@</a
+              >
+            </div>
+            <div class="hero-scroll">
+              <span>Scroll Down</span>
+              <span class="icon">⬇️</span>
+            </div>
+          </div>
+          <div class="hero-right">
+            <div class="hero-avatar">
+              <div class="hero-avatar-ring"></div>
+              <!-- Replace src with a relative image path in your project -->
+              <img
+                src="C:\Users\teste\Downloads\srinivas_portpolio\inno_photo_page-0001.jpg"
+                alt="Profile picture of DONGARI SRINIVASA RAO"
+              />
+            </div>
+            <div class="hero-pills">
+              <span class="hero-pill">Data Science Intern @ YBI Foundation</span>
+              <span class="hero-pill">Data Science Intern @ Hex Software</span>
+              <span class="hero-pill">Data Science Intern @ Coreline</span>
+              <span class="hero-pill">AI Engineer @ Workcohol</span>
+            </div>
+          </div>
+        </main>
+
+        <!-- SKILLS -->
+        <section id="skills" class="section">
+          <div class="section-header">
+            <div class="section-kicker">Technical Expertise</div>
+            <div class="section-title">Skills</div>
+          </div>
+          <div class="skills-row-top">
+            <div class="skill-icon">
+              <div class="skill-icon-circle">📊</div>
+              <div>Analytics</div>
+            </div>
+            <div class="skill-icon">
+              <div class="skill-icon-circle">🤖</div>
+              <div>AI / ML</div>
+            </div>
+            <div class="skill-icon">
+              <div class="skill-icon-circle">💻</div>
+              <div>Python</div>
+            </div>
+            <div class="skill-icon">
+              <div class="skill-icon-circle">📈</div>
+              <div>Power BI</div>
+            </div>
+            <div class="skill-icon">
+              <div class="skill-icon-circle">🗄️</div>
+              <div>SQL & DB</div>
+            </div>
+          </div>
+          <div class="skills-grids">
+            <div class="skills-card">
+              <div class="skills-card-title">AI & Data Science</div>
+              <div class="skills-chip-row">
+                <span class="badge badge-blue">Python</span>
+                <span class="badge badge-blue">NumPy</span>
+                <span class="badge badge-blue">Pandas</span>
+                <span class="badge badge-blue">Matplotlib</span>
+                <span class="badge badge-blue">Seaborn</span>
+                <span class="badge badge-blue">Plotly</span>
+                <span class="badge badge-blue">Machine Learning</span>
+                <span class="badge badge-blue">Deep Learning</span>
+                <span class="badge badge-blue">NLP</span>
+                <span class="badge badge-blue">Gen AI</span>
+              </div>
+            </div>
+            <div class="skills-card">
+              <div class="skills-card-title">Data Analytics & Visualization</div>
+              <div class="skills-chip-row">
+                <span class="badge badge-green">EDA</span>
+                <span class="badge badge-green">Feature Engineering</span>
+                <span class="badge badge-green">Power BI</span>
+                <span class="badge badge-green">MS Excel</span>
+                <span class="badge badge-green">Business Dashboards</span>
+                <span class="badge badge-green">RFM Segmentation</span>
+              </div>
+            </div>
+            <div class="skills-card">
+              <div class="skills-card-title">Backend & Tools</div>
+              <div class="skills-chip-row">
+                <span class="badge">Streamlit</span>
+                <span class="badge">Flask</span>
+                <span class="badge">MySQL</span>
+                <span class="badge">MongoDB</span>
+                <span class="badge">Git</span>
+                <span class="badge">GitHub</span>
+                <span class="badge">VS Code</span>
+                <span class="badge">Google Colab</span>
+              </div>
+            </div>
+            <div class="skills-card">
+              <div class="skills-card-title">Professional Strengths</div>
+              <div class="skills-chip-row">
+                <span class="badge badge-orange">Problem Solving</span>
+                <span class="badge badge-orange">Data Storytelling</span>
+                <span class="badge badge-orange">Team Collaboration</span>
+                <span class="badge badge-orange">Continuous Learning</span>
+                <span class="badge badge-orange">Communication</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- PROJECTS -->
+        <section id="projects" class="section">
+          <div class="section-header">
+            <div class="section-kicker">Featured Work</div>
+            <div class="section-title">Projects</div>
+          </div>
+          <div class="projects-filter">
+            <button class="filter-pill active">All</button>
+            <button class="filter-pill">AI</button>
+            <button class="filter-pill">ML</button>
+            <button class="filter-pill">Analytics</button>
+          </div>
+          <div class="projects-grid">
+            <article class="project-card">
+              <div class="project-tag-top">ML</div>
+              <div class="project-body">
+                <div class="project-title-main">
+                  Supply Chain Optimizer – Demand Forecasting
+                </div>
+                <div class="project-sub">
+                  Built a 92%‑accurate demand forecasting system with Streamlit
+                  and scikit‑learn to optimize inventory and logistics,
+                  reducing delays by 15% and boosting delivery efficiency by
+                  20%.
+                </div>
+                <div class="project-bottom">
+                  <span class="project-live">ML App</span>
+                  <div class="project-tech-row">
+                    <span class="project-tech">Python</span>
+                    <span class="project-tech">Pandas</span>
+                    <span class="project-tech">Scikit-learn</span>
+                    <span class="project-tech">Streamlit</span>
+                    <span class="project-tech">MySQL</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <article class="project-card">
+              <div class="project-tag-top">AI</div>
+              <div class="project-body">
+                <div class="project-title-main">
+                  Lupus Nephritis Classification Web App
+                </div>
+                <div class="project-sub">
+                  Developed an 89%‑accurate classification model with a
+                  clinician‑friendly Streamlit UI, improving diagnostic
+                  reliability and reducing manual review time by 25%.
+                </div>
+                <div class="project-bottom">
+                  <span class="project-live">Research</span>
+                  <div class="project-tech-row">
+                    <span class="project-tech">Python</span>
+                    <span class="project-tech">Pandas</span>
+                    <span class="project-tech">NumPy</span>
+                    <span class="project-tech">Scikit-learn</span>
+                    <span class="project-tech">Streamlit</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <article class="project-card">
+              <div class="project-tag-top">Analytics</div>
+              <div class="project-body">
+                <div class="project-title-main">
+                  Amazon Sales Analysis Dashboard
+                </div>
+                <div class="project-sub">
+                  Created a Streamlit dashboard for sales and customer
+                  insights, including forecasting and return analysis that
+                  improved marketing ROI by 18%.
+                </div>
+                <div class="project-bottom">
+                  <span class="project-live">Analytics</span>
+                  <div class="project-tech-row">
+                    <span class="project-tech">Python</span>
+                    <span class="project-tech">Pandas</span>
+                    <span class="project-tech">Seaborn</span>
+                    <span class="project-tech">Streamlit</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <article class="project-card">
+              <div class="project-tag-top">Analytics</div>
+              <div class="project-body">
+                <div class="project-title-main">
+                  Books Dataset Analysis & Web Scraping
+                </div>
+                <div class="project-sub">
+                  Scraped 1,000+ book entries and engineered features to study
+                  pricing, category, and rating trends, improving insight
+                  accuracy by 35%.
+                </div>
+                <div class="project-bottom">
+                  <span class="project-live">Data Pipeline</span>
+                  <div class="project-tech-row">
+                    <span class="project-tech">BeautifulSoup</span>
+                    <span class="project-tech">Requests</span>
+                    <span class="project-tech">Pandas</span>
+                    <span class="project-tech">Matplotlib</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <article class="project-card">
+              <div class="project-tag-top">BI</div>
+              <div class="project-body">
+                <div class="project-title-main">
+                  Power BI Customer Insights & Segmentation
+                </div>
+                <div class="project-sub">
+                  Built a dashboard for 5,000+ banking customers with RFM
+                  segmentation, improving targeting effectiveness by 30%.
+                </div>
+                <div class="project-bottom">
+                  <span class="project-live">Power BI</span>
+                  <div class="project-tech-row">
+                    <span class="project-tech">Power BI</span>
+                    <span class="project-tech">Power Query</span>
+                    <span class="project-tech">DAX</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+            <article class="project-card">
+              <div class="project-tag-top">SQL</div>
+              <div class="project-body">
+                <div class="project-title-main">
+                  Employee Management & SQL Analytics
+                </div>
+                <div class="project-sub">
+                  Designed a SQL system for 1,500+ employee and payroll records
+                  and analytics that improved HR reporting efficiency by 25%.
+                </div>
+                <div class="project-bottom">
+                  <span class="project-live">Database</span>
+                  <div class="project-tech-row">
+                    <span class="project-tech">MySQL</span>
+                    <span class="project-tech">SQL Workbench</span>
+                    <span class="project-tech">ER Modeling</span>
+                  </div>
+                </div>
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- EDUCATION -->
+        <section id="education" class="section">
+          <div class="section-header">
+            <div class="section-kicker">Academic Journey</div>
+            <div class="section-title">Education</div>
+          </div>
+          <div class="timeline">
+            <div class="timeline-line"></div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-card">
+                <div class="timeline-title">
+                  B.Tech in Artificial Intelligence & Machine Learning
+                </div>
+                <div class="timeline-sub">
+                  K. G. Reddy College of Engineering and Technology – CGPA
+                  8.33/10
+                </div>
+                <div class="timeline-period">2021 – 2025</div>
+                <div class="timeline-text">
+                  Built strong foundations in AI, ML, data science, and
+                  software engineering; ranked 2nd in the department and
+                  awarded Best Student for academic and extracurricular
+                  excellence.
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-card">
+                <div class="timeline-title">Intermediate (MPC)</div>
+                <div class="timeline-sub">
+                  Narayana Junior College – CGPA 8.92/10
+                </div>
+                <div class="timeline-period">2018 – 2020</div>
+                <div class="timeline-text">
+                  Strengthened analytical and quantitative skills with focus on
+                  mathematics, physics, and chemistry.
+                </div>
+              </div>
+            </div>
+            <div class="timeline-item">
+              <div class="timeline-dot"></div>
+              <div class="timeline-card">
+                <div class="timeline-title">SSC</div>
+                <div class="timeline-sub">
+                  St. Ann's School – CGPA 9.0/10
+                </div>
+                <div class="timeline-period">2017 – 2018</div>
+                <div class="timeline-text">
+                  Completed schooling with a strong academic record, building
+                  the foundation for higher education in AI and data.
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- CERTIFICATIONS -->
+        <section id="certifications" class="section">
+          <div class="section-header">
+            <div class="section-kicker">Professional Achievements</div>
+            <div class="section-title">Certifications</div>
+          </div>
+          <div class="slider-row">
+            <article class="slider-card">
+              <div class="slider-image">📄</div>
+              <div class="slider-title">
+                Lupus Nephritis Classification Model – ICMED
+              </div>
+              <div class="slider-meta">
+                Research publication on a medical ML model, validating
+                end‑to‑end pipeline design and real‑world impact.
+              </div>
+            </article>
+            <article class="slider-card">
+              <div class="slider-image">🐍</div>
+              <div class="slider-title">
+                Full Stack Python for Data Science – EducateNext
+              </div>
+              <div class="slider-meta">
+                Covered Python, data science libraries, and backend integration
+                for analytics and ML applications.
+              </div>
+            </article>
+            <article class="slider-card">
+              <div class="slider-image">🍃</div>
+              <div class="slider-title">
+                MongoDB for Beginners & Fundamentals – MongoDB University
+              </div>
+              <div class="slider-meta">
+                Learned NoSQL data modeling, CRUD operations, and aggregation
+                for analytics workloads.
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- INTERNSHIPS -->
+        <section id="internships" class="section">
+          <div class="section-header">
+            <div class="section-kicker">Professional Experience</div>
+            <div class="section-title">Internships</div>
+          </div>
+          <div class="slider-row">
+            <article class="slider-card">
+              <div class="slider-image">📈</div>
+              <div class="slider-title">
+                Data Science Intern – YBI Foundation
+              </div>
+              <div class="slider-meta">
+                Processed 10,000+ rows and automated preprocessing, cutting
+                manual work by 25% and improving model accuracy by 15%;
+                created visual insights that increased reporting clarity by
+                30%.
+              </div>
+            </article>
+            <article class="slider-card">
+              <div class="slider-image">🧮</div>
+              <div class="slider-title">
+                Data Science Intern – Hex Software
+              </div>
+              <div class="slider-meta">
+                Cleaned 5K+ records, improving data quality by 40%, speeding ML
+                workflows by 20%, and building dashboards that improved
+                stakeholder visibility by 35%.
+              </div>
+            </article>
+            <article class="slider-card">
+              <div class="slider-image">💬</div>
+              <div class="slider-title">
+                Data Science Intern – Coreline
+              </div>
+              <div class="slider-meta">
+                Implemented sentiment anomaly detection (+17% accuracy) and
+                optimized NLP pipelines, reducing preprocessing time by 15% and
+                runtime by 12%.
+              </div>
+            </article>
+            <article class="slider-card">
+              <div class="slider-image">🤖</div>
+              <div class="slider-title">AI Engineer – Workcohol</div>
+              <div class="slider-meta">
+                Built an AI recommendation system that increased engagement by
+                22% and reduced churn by 10% through feature engineering and
+                optimization.
+              </div>
+            </article>
+          </div>
+        </section>
+
+        <!-- CONTACT -->
+        <section id="contact" class="section">
+          <div class="section-header">
+            <div class="section-kicker">Let's Connect</div>
+            <div class="section-title">Get in touch</div>
+          </div>
+          <div class="contact-grid">
+            <div class="contact-card">
+              <h3 style="margin: 0 0 10px; font-size: 16px;">
+                Contact Channels
+              </h3>
+              <div>
+                <div class="contact-label">Email</div>
+                <div class="contact-value">
+                  <a
+                    href="mailto:srinivasaraodongari630@gmail.com"
+                    class="contact-link"
+                    >srinivasaraodongari630@gmail.com</a
+                  >
+                </div>
+              </div>
+              <div style="margin-top: 10px;">
+                <div class="contact-label">LinkedIn</div>
+                <div class="contact-value">
+                  <a
+                    href="https://in.linkedin.com/in/dongari-srinivasa-rao-527284280"
+                    target="_blank"
+                    class="contact-link"
+                    >linkedin.com/in/dongari-srinivasa-rao-527284280</a
+                  >
+                </div>
+              </div>
+              <div style="margin-top: 10px;">
+                <div class="contact-label">GitHub</div>
+                <div class="contact-value">
+                  <a
+                    href="https://github.com/Srinivas6620"
+                    target="_blank"
+                    class="contact-link"
+                    >github.com/Srinivas6620</a
+                  >
+                </div>
+              </div>
+              <div style="margin-top: 10px;">
+                <div class="contact-label">Location</div>
+                <div class="contact-value">Hyderabad / Palanadu, India</div>
+              </div>
+            </div>
+            <div class="contact-card">
+              <h3 style="margin: 0 0 10px; font-size: 16px;">
+                Send a Message
+              </h3>
+              <div class="contact-form-grid">
+                <div>
+                  <div class="field-label">Name</div>
+                  <input
+                    class="field-input"
+                    placeholder="Your full name"
+                    type="text"
+                  />
+                </div>
+                <div>
+                  <div class="field-label">Email</div>
+                  <input
+                    class="field-input"
+                    placeholder="your.email@example.com"
+                    type="email"
+                  />
+                </div>
+                <div>
+                  <div class="field-label">Message</div>
+                  <textarea
+                    class="field-textarea"
+                    placeholder="Tell me about your project or just say hi..."
+                  ></textarea>
+                </div>
+                <button class="btn-primary" type="button">
+                  Submit (demo only)
+                </button>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <footer class="footer">
+          <span id="year"></span> © DONGARI SRINIVASA RAO. All rights
+          reserved.
+        </footer>
+      </div>
+    </div>
+
+    <!-- CHATBOT TOGGLE BUTTON -->
+    <button class="chatbot-toggle" id="chatbot-toggle">
+      💬
+    </button>
+
+    <!-- AI CHATBOT WIDGET -->
+    <div class="chatbot-container" id="chatbot-container">
+      <div class="chatbot-header">
+        <div class="chatbot-avatar">🤖</div>
+        <div style="display: flex; flex-direction: column; gap: 2px;">
+          <div class="chatbot-title">Portfolio Assistant</div>
+          <div class="chatbot-subtitle">
+            Ask me anything about this portfolio
+          </div>
+        </div>
+        <button class="chatbot-close" id="chatbot-close">✕</button>
+      </div>
+      <div class="chatbot-quick-actions" id="chatbot-quick-actions">
+        <!-- Quick action chips -->
+        <button class="chip-action" data-action="skills">Skills</button>
+        <button class="chip-action" data-action="projects">View Projects</button>
+        <button class="chip-action" data-action="experience">Experience</button>
+        <button class="chip-action" data-action="education">Education</button>
+        <button class="chip-action" data-action="resume">Download Resume</button>
+        <button class="chip-action" data-action="contact">Contact Me</button>
+      </div>
+      <div class="chatbot-messages" id="chatbot-messages"></div>
+      <div class="chatbot-input">
+        <input
+          type="text"
+          placeholder="Ask about skills, projects, resume, contact..."
+          id="chatbot-input"
+        />
+        <button class="chatbot-send" id="chatbot-send">➤</button>
+      </div>
+    </div>
+
+    <script>
+      // YEAR FOOTER
+      document.getElementById("year").textContent = new Date().getFullYear();
+
+      // SMOOTH SCROLL SCROLLTOID
+      function scrollToId(id) {
+        const el = document.getElementById(id);
+        if (el) el.scrollIntoView({ behavior: "smooth", block: "start" });
+      }
+      window.scrollToId = scrollToId;
+
+      // THEME TOGGLE
+      const themeBtn = document.getElementById("theme-toggle");
+      function setTheme(isDark) {
+        document.documentElement.className = isDark ? "dark" : "";
+        document
+          .querySelector('meta[name="theme-color"]')
+          .setAttribute("content", isDark ? "#020617" : "#ffffff");
+        localStorage.setItem("theme", isDark ? "dark" : "light");
+        themeBtn.textContent = isDark ? "☀️" : "🌙";
+      }
+      function initTheme() {
+        const savedTheme = localStorage.getItem("theme");
+        const isDark =
+          savedTheme === "dark" ||
+          (!savedTheme &&
+            window.matchMedia("(prefers-color-scheme: dark)").matches);
+        setTheme(isDark);
+      }
+      initTheme();
+      themeBtn.addEventListener("click", () => {
+        const isDark = document.documentElement.className !== "dark";
+        setTheme(isDark);
+      });
+
+      // DOCK ACTIVE STATE
+      window.addEventListener("scroll", () => {
+        const sections = [
+          "home",
+          "skills",
+          "projects",
+          "education",
+          "certifications",
+          "internships",
+          "contact",
+        ];
+        const scrollY = window.scrollY + 100;
+        sections.forEach((section) => {
+          const el = document.getElementById(section);
+          if (el && el.offsetTop <= scrollY && scrollY < el.offsetTop + el.offsetHeight) {
+            document
+              .querySelectorAll(".dock-btn")
+              .forEach((btn) => btn.classList.remove("active"));
+            const activeBtn = Array.from(
+              document.querySelectorAll(".dock-btn")
+            ).find((btn) => btn.onclick.toString().includes(`'${section}'`));
+            if (activeBtn) activeBtn.classList.add("active");
+          }
+        });
+      });
+
+      // 3D NETWORK BACKGROUND (Three.js)
+      (function initNetworkBackground() {
+        const canvas = document.getElementById("bg-network-canvas");
+        if (!canvas || !window.THREE) return;
+
+        const renderer = new THREE.WebGLRenderer({
+          canvas,
+          antialias: true,
+        });
+        renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+
+        const scene = new THREE.Scene();
+        scene.fog = new THREE.FogExp2(0x020617, 0.035);
+
+        const camera = new THREE.PerspectiveCamera(55, 1, 0.1, 1000);
+        camera.position.z = 45;
+
+        // Node geometry
+        const NODE_COUNT = 420;
+        const radius = 32;
+        const positions = new Float32Array(NODE_COUNT * 3);
+        const velocities = new Float32Array(NODE_COUNT * 3);
+
+        for (let i = 0; i < NODE_COUNT; i++) {
+          const i3 = i * 3;
+          const theta = Math.random() * Math.PI * 2;
+          const phi = Math.acos(2 * Math.random() - 1);
+          const r = radius * (0.6 + Math.random() * 0.4);
+
+          positions[i3] = r * Math.sin(phi) * Math.cos(theta);
+          positions[i3 + 1] = r * Math.sin(phi) * Math.sin(theta);
+          positions[i3 + 2] = r * Math.cos(phi);
+
+          velocities[i3] = (Math.random() - 0.5) * 0.02;
+          velocities[i3 + 1] = (Math.random() - 0.5) * 0.02;
+          velocities[i3 + 2] = (Math.random() - 0.5) * 0.02;
+        }
+
+        // Points material (neon)
+        const pointGeometry = new THREE.BufferGeometry();
+        pointGeometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(positions, 3)
+        );
+
+        const pointMaterial = new THREE.PointsMaterial({
+          color: new THREE.Color("#22d3ee"),
+          size: 0.6,
+          transparent: true,
+          opacity: 0.75,
+        });
+
+        const points = new THREE.Points(pointGeometry, pointMaterial);
+        scene.add(points);
+
+        // Lines between close points
+        const maxConnections = 6;
+        const lineThreshold = 9;
+        const linePositions = new Float32Array(
+          NODE_COUNT * maxConnections * 3 * 2
+        );
+        const lineGeometry = new THREE.BufferGeometry();
+        lineGeometry.setAttribute(
+          "position",
+          new THREE.BufferAttribute(linePositions, 3).setUsage(
+            THREE.DynamicDrawUsage
+          )
+        );
+        const lineMaterial = new THREE.LineBasicMaterial({
+          color: new THREE.Color("#6366f1"),
+          transparent: true,
+          opacity: 0.18,
+        });
+        const linesMesh = new THREE.LineSegments(lineGeometry, lineMaterial);
+        scene.add(linesMesh);
+
+        let width = window.innerWidth;
+        let height = window.innerHeight;
+        function resize() {
+          width = window.innerWidth;
+          height = window.innerHeight;
+          renderer.setSize(width, height);
+          camera.aspect = width / height;
+          camera.updateProjectionMatrix();
+        }
+        resize();
+        window.addEventListener("resize", resize);
+
+        // Mouse parallax
+        const mouse = { x: 0, y: 0 };
+        window.addEventListener("pointermove", (e) => {
+          mouse.x = (e.clientX / width - 0.5) * 2;
+          mouse.y = (e.clientY / height - 0.5) * 2;
+        });
+
+        function animate() {
+          requestAnimationFrame(animate);
+
+          // Parallax camera movement
+          camera.position.x += (mouse.x * 6 - camera.position.x) * 0.03;
+          camera.position.y += (-mouse.y * 4 - camera.position.y) * 0.03;
+          camera.lookAt(scene.position);
+
+          const pos = pointGeometry.attributes.position.array;
+          const linePos = lineGeometry.attributes.position.array;
+          let lineIndex = 0;
+
+          // Update point positions with gentle floating
+          for (let i = 0; i < NODE_COUNT; i++) {
+            const i3 = i * 3;
+            pos[i3] += velocities[i3];
+            pos[i3 + 1] += velocities[i3 + 1];
+            pos[i3 + 2] += velocities[i3 + 2];
+
+            // Soft bounds
+            const d = Math.sqrt(
+              pos[i3] * pos[i3] +
+                pos[i3 + 1] * pos[i3 + 1] +
+                pos[i3 + 2] * pos[i3 + 2]
+            );
+            if (d > radius) {
+              velocities[i3] *= -1;
+              velocities[i3 + 1] *= -1;
+              velocities[i3 + 2] *= -1;
+            }
+          }
+
+          // Build connections
+          for (let i = 0; i < NODE_COUNT; i++) {
+            let connections = 0;
+            const i3 = i * 3;
+            for (
+              let j = i + 1;
+              j < NODE_COUNT && connections < maxConnections;
+              j++
+            ) {
+              const j3 = j * 3;
+              const dx = pos[i3] - pos[j3];
+              const dy = pos[i3 + 1] - pos[j3 + 1];
+              const dz = pos[i3 + 2] - pos[j3 + 2];
+              const dist = Math.sqrt(dx * dx + dy * dy + dz * dz);
+              if (dist < lineThreshold) {
+                linePos[lineIndex++] = pos[i3];
+                linePos[lineIndex++] = pos[i3 + 1];
+                linePos[lineIndex++] = pos[i3 + 2];
+
+                linePos[lineIndex++] = pos[j3];
+                linePos[lineIndex++] = pos[j3 + 1];
+                linePos[lineIndex++] = pos[j3 + 2];
+
+                connections++;
+              }
+            }
+          }
+
+          lineGeometry.setDrawRange(0, lineIndex / 3);
+          pointGeometry.attributes.position.needsUpdate = true;
+          lineGeometry.attributes.position.needsUpdate = true;
+
+          renderer.render(scene, camera);
+        }
+
+        animate();
+      })();
+
+      // PORTFOLIO CONTEXT KNOWLEDGE FOR CHATBOT
+      const portfolioContext = {
+        name: "Dongari Srinivasa Rao",
+        title: "AI & ML Engineer • Data Analyst",
+        email: "srinivasaraodongari630@gmail.com",
+        linkedin: "https://in.linkedin.com/in/dongari-srinivasa-rao-527284280",
+        github: "https://github.com/Srinivas6620",
+        location: "Hyderabad / Palanadu, India",
+        education:
+          "B.Tech in AI & ML from K. G. Reddy College of Engineering and Technology (CGPA 8.33/10)",
+        skills: [
+          "Python, NumPy, Pandas, Matplotlib, Seaborn, Plotly",
+          "Machine Learning, Deep Learning, NLP, Gen AI",
+          "Power BI, MS Excel, EDA, Feature Engineering",
+          "Streamlit, Flask, MySQL, MongoDB",
+          "Git, GitHub, VS Code, Google Colab",
+        ],
+        projects: [
+          "Supply Chain Optimizer – 92% accurate demand forecasting",
+          "Lupus Nephritis Classification – 89% accurate medical ML model",
+          "Amazon Sales Analysis Dashboard",
+          "Books Dataset Web Scraping & Analysis",
+          "Power BI Customer Segmentation Dashboard",
+          "Employee Management SQL System",
+        ],
+        internships: [
+          "Data Science Intern @ YBI Foundation",
+          "Data Science Intern @ Hex Software",
+          "Data Science Intern @ Coreline",
+          "AI Engineer @ Workcohol",
+        ],
+        resumeUrl: "assets/Dongari_Srinivasa_Rao_Resume.pdf",
+      };
+
+      // RULE-BASED RESPONSE GENERATOR (SMART KEYWORD HANDLER)
+      function generateResponse(userMessage) {
+        const msg = userMessage.toLowerCase();
+
+        // Greeting / opening
+        if (/(hello|hi|hey|namaste|yo|hola)/.test(msg)) {
+          return `Hello! 👋 Welcome to ${portfolioContext.name}'s portfolio.\n\nI can guide you through skills, projects, internships, education, and how to contact me.\nAsk anything or use the quick buttons below.`;
+        }
+
+        // Skills
+        if (msg.includes("skill") || msg.includes("tech") || msg.includes("stack")) {
+          return `Here are the core skills:\n\n• AI/ML: Python, NumPy, Pandas, Scikit-learn, Deep Learning, NLP, Gen AI\n• Analytics: EDA, Feature Engineering, Power BI, MS Excel, RFM Segmentation\n• Tools: Streamlit, Flask, MySQL, MongoDB, Git, GitHub, VS Code, Google Colab\n\nWant to know about a specific skill or tool?`;
+        }
+
+        // Projects
+        if (
+          msg.includes("project") ||
+          msg.includes("projects") ||
+          msg.includes("portfolio work")
+        ) {
+          return `Featured projects:\n\n• Supply Chain Optimizer – ML demand forecasting (92% accuracy)\n• Lupus Nephritis Classification – Medical AI model (89% accuracy)\n• Amazon Sales Analysis Dashboard – Forecasting & insights\n• Books Dataset Analysis – Web scraping & analytics\n• Power BI Customer Segmentation – RFM-based dashboard\n• Employee Management SQL System – Database & analytics\n\nAsk about any specific project to get more context.`;
+        }
+
+        // Experience / internships
+        if (
+          msg.includes("intern") ||
+          msg.includes("experience") ||
+          msg.includes("work") ||
+          msg.includes("job")
+        ) {
+          return `Professional experience:\n\n• Data Science Intern @ YBI Foundation\n• Data Science Intern @ Hex Software\n• Data Science Intern @ Coreline\n• AI Engineer @ Workcohol\n\nThese roles include end‑to‑end ML, analytics, dashboards, and production‑like projects.`;
+        }
+
+        // Education
+        if (
+          msg.includes("education") ||
+          msg.includes("college") ||
+          msg.includes("degree")
+        ) {
+          return `Education details:\n\n• B.Tech in AI & ML – K. G. Reddy College of Engineering and Technology\n• CGPA: 8.33/10 (2021–2025)\n• Ranked 2nd in the department and received Best Student award\n\nYou can also scroll to the Education section for a full timeline.`;
+        }
+
+        // Resume
+        if (msg.includes("resume") || msg.includes("cv")) {
+          const text =
+            portfolioContext.resumeUrl && portfolioContext.resumeUrl !== "#"
+              ? `You can download the latest resume here:\n\n🔗 ${portfolioContext.resumeUrl}`
+              : `A downloadable resume link is not set in this demo.\nYou can still learn about experience, skills, and projects directly in this portfolio.\n\nIf you add a resume URL in the code (portfolioContext.resumeUrl), I will share it here.`;
+          return text;
+        }
+
+        // Contact / email
+        if (
+          msg.includes("contact") ||
+          msg.includes("email") ||
+          msg.includes("reach")
+        ) {
+          return `You can reach out via:\n\n📧 Email: ${portfolioContext.email}\n💼 LinkedIn: ${portfolioContext.linkedin}\n📂 GitHub: ${portfolioContext.github}\n📍 Location: ${portfolioContext.location}\n\nUse the "Contact Me" quick action to scroll to the contact form.`;
+        }
+
+        // Location
+        if (
+          msg.includes("where are you") ||
+          msg.includes("location") ||
+          msg.includes("from")
+        ) {
+          return `The primary location is ${portfolioContext.location}.\n\nOpen to remote or hybrid opportunities as well.`;
+        }
+
+        // Thanks / closing
+        if (
+          msg.includes("thank") ||
+          msg.includes("bye") ||
+          msg.includes("see you")
+        ) {
+          return `You're welcome! 🚀\n\nFeel free to explore the sections or ping again if you need anything.`;
+        }
+
+        // Fallback
+        return `That’s an interesting question.\n\nI can help you with:\n• Skills and technologies\n• Projects and impact\n• Internships and experience\n• Education and achievements\n• Contact and resume\n\nTry asking things like:\n“Show me your ML projects” or “What are your key skills?”`;
+      }
+
+      // CHATBOT DOM REFERENCES
+      const chatbotToggle = document.getElementById("chatbot-toggle");
+      const chatbotContainer = document.getElementById("chatbot-container");
+      const chatbotClose = document.getElementById("chatbot-close");
+      const chatbotInput = document.getElementById("chatbot-input");
+      const chatbotSend = document.getElementById("chatbot-send");
+      const chatbotMessages = document.getElementById("chatbot-messages");
+      const quickActions = document.getElementById("chatbot-quick-actions");
+
+      let messages = [
+        {
+          role: "assistant",
+          content: `Hi! I'm ${portfolioContext.name}'s AI portfolio assistant 🤖\n\nI can guide you to the right section, summarize skills and projects, or share contact details. What would you like to explore first?`,
+        },
+      ];
+
+      // Render message bubble
+      function addMessage(role, content) {
+        messages.push({ role, content });
+        const messageDiv = document.createElement("div");
+        messageDiv.className = `message ${role}`;
+        const avatar = role === "user" ? "👤" : "🤖";
+        messageDiv.innerHTML = `
+          <div class="message-avatar">${avatar}</div>
+          <div class="message-content">${content.replace(/\n/g, "<br>")}</div>
+        `;
+        chatbotMessages.appendChild(messageDiv);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+      }
+
+      // Show typing indicator
+      function showTyping() {
+        const typingWrapper = document.createElement("div");
+        typingWrapper.className = "message assistant typing-wrapper";
+        typingWrapper.innerHTML = `
+          <div class="message-avatar">🤖</div>
+          <div class="message-content">
+            <div class="typing-indicator-inner">
+              <span>Typing...</span>
+              <div class="typing-dots">
+                <span></span><span></span><span></span>
+              </div>
+            </div>
+          </div>
+        `;
+        chatbotMessages.appendChild(typingWrapper);
+        chatbotMessages.scrollTop = chatbotMessages.scrollHeight;
+        return typingWrapper;
+      }
+
+      // Core send message handler
+      function sendMessage(userText) {
+        const input = (userText ?? chatbotInput.value).trim();
+        if (!input) return;
+
+        addMessage("user", input);
+        chatbotInput.value = "";
+
+        const typingEl = showTyping();
+
+        setTimeout(() => {
+          typingEl.remove();
+          const response = generateResponse(input);
+          addMessage("assistant", response);
+
+          // SMART SCROLL BASED ON INTENT
+          const lower = input.toLowerCase();
+          if (lower.includes("project")) scrollToId("projects");
+          else if (lower.includes("skill")) scrollToId("skills");
+          else if (lower.includes("intern") || lower.includes("experience"))
+            scrollToId("internships");
+          else if (lower.includes("education") || lower.includes("college"))
+            scrollToId("education");
+          else if (lower.includes("contact") || lower.includes("email"))
+            scrollToId("contact");
+          else if (lower.includes("resume") || lower.includes("cv")) {
+            if (
+              portfolioContext.resumeUrl &&
+              portfolioContext.resumeUrl !== "#"
+            ) {
+              window.open(portfolioContext.resumeUrl, "_blank");
+            }
+          }
+        }, 700);
+      }
+
+      // QUICK ACTION BUTTONS (SMART BEHAVIOUR)
+      quickActions.addEventListener("click", (e) => {
+        const btn = e.target.closest(".chip-action");
+        if (!btn) return;
+        const action = btn.dataset.action;
+
+        if (action === "skills") {
+          sendMessage("Tell me about your skills");
+          scrollToId("skills");
+        } else if (action === "projects") {
+          sendMessage("Show me your projects");
+          scrollToId("projects");
+        } else if (action === "experience") {
+          sendMessage("What experience and internships do you have?");
+          scrollToId("internships");
+        } else if (action === "education") {
+          sendMessage("What is your education background?");
+          scrollToId("education");
+        } else if (action === "contact") {
+          sendMessage("How can I contact you?");
+          scrollToId("contact");
+        } else if (action === "resume") {
+          sendMessage("Can I download your resume?");
+          if (
+            portfolioContext.resumeUrl &&
+            portfolioContext.resumeUrl !== "#"
+          ) {
+            window.open(portfolioContext.resumeUrl, "_blank");
+          }
+        }
+      });
+
+      // EVENT LISTENERS
+      chatbotToggle.addEventListener("click", () => {
+        chatbotContainer.classList.add("open");
+      });
+
+      chatbotClose.addEventListener("click", () => {
+        chatbotContainer.classList.remove("open");
+      });
+
+      chatbotSend.addEventListener("click", () => sendMessage());
+
+      chatbotInput.addEventListener("keypress", (e) => {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          sendMessage();
+        }
+      });
+
+      // Close chatbot when clicking outside
+      document.addEventListener("click", (e) => {
+        if (
+          !chatbotContainer.contains(e.target) &&
+          !chatbotToggle.contains(e.target)
+        ) {
+          chatbotContainer.classList.remove("open");
+        }
+      });
+
+      // INITIAL GREETING MESSAGE
+      messages.forEach((msg) => addMessage(msg.role, msg.content));
+
+      // AUTO-GREET (opens briefly on first load)
+      setTimeout(() => {
+        chatbotContainer.classList.add("open");
+      }, 1200);
+
+      setTimeout(() => {
+        chatbotContainer.classList.remove("open");
+      }, 6000);
+    </script>
+  </body>
+</html>
